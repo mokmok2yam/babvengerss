@@ -1,0 +1,28 @@
+# Build files
+build/
+.gradle/
+
+# Log files
+*.log
+
+# IDE files (IntelliJ, VSCode, etc.)
+.idea/
+*.iml
+*.iws
+*.ipr
+.vscode/
+
+# Operating System files
+.DS_Store
+Thumbs.db
+
+# Sensitive configuration files
+# ⚠️ 데이터베이스 비밀번호나 API 키 같은 민감 정보가 포함될 수 있으므로 git에서 제외합니다.
+**/application.properties
+
+# Gradle
+# Allow the gradle wrapper to be committed
+!gradle/wrapper/gradle-wrapper.jar
+
+# Other generated files
+out/
