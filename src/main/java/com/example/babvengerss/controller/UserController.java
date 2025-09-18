@@ -1,7 +1,9 @@
 package com.example.babvengerss.controller;
 
 import com.example.babvengerss.domain.User;
+import com.example.babvengerss.dto.LoginResponse; // 추가
 import com.example.babvengerss.repository.UserRepository;
+import com.example.babvengerss.util.JwtUtil; // 추가
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -15,9 +17,11 @@ import org.springframework.web.bind.annotation.RestController;
 public class UserController {
 
     private final UserRepository userRepository;
+    private final JwtUtil jwtUtil; // JwtUtil 주입
 
     @PostMapping("/signup")
     public ResponseEntity<String> signup(@RequestBody User user) {
+        // ... 기존 코드와 동일 ...
         if (userRepository.findByUsername(user.getUsername()).isPresent()) {
             return ResponseEntity.badRequest().body("이미 존재하는 사용자입니다.");
         }
@@ -26,10 +30,26 @@ public class UserController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<String> login(@RequestBody User user) {
-        return userRepository.findByUsername(user.getUsername())
-                .filter(u -> u.getPassword().equals(user.getPassword()))
-                .map(u -> ResponseEntity.ok("로그인 성공"))
+    public ResponseEntity<?> login(@RequestBody User loginRequest) {
+        return userRepository.findByUsername(loginRequest.getUsername())
+                .map(foundUser -> {
+                    // 2. 사용자가 존재하면, 비밀번호가 일치하는지 확인합니다.
+                    if (foundUser.getPassword().equals(loginRequest.getPassword())) {
+                        // 3. 비밀번호가 일치하면 토큰을 생성하고 LoginResponse를 반환합니다.
+                        final String token = jwtUtil.generateToken(foundUser.getUsername());
+                        LoginResponse loginResponse = new LoginResponse(
+                                foundUser.getId(),
+                                foundUser.getUsername(),
+                                foundUser.getNickname(),
+                                token
+                        );
+                        return ResponseEntity.ok(loginResponse);
+                    } else {
+                        // 비밀번호가 틀렸을 경우
+                        return ResponseEntity.status(401).body("아이디 또는 비밀번호 오류");
+                    }
+                })
+                // 1. 사용자가 존재하지 않을 경우
                 .orElse(ResponseEntity.status(401).body("아이디 또는 비밀번호 오류"));
     }
 }
