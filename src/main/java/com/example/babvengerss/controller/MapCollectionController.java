@@ -20,6 +20,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.reactive.function.client.WebClient;
+import com.example.babvengerss.dto.MapUpdateRequest;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -118,7 +119,7 @@ public class MapCollectionController {
             return MapCollectionResponse.builder()
                     .id(map.getId())
                     .name(map.getName())
-                    .username(map.getUser().getUsername())
+                    .nickname(map.getUser().getNickname())
                     .restaurants(restaurantDtos)
                     .build();
         }).toList();
@@ -146,11 +147,47 @@ public class MapCollectionController {
             return MapCollectionResponse.builder()
                     .id(map.getId())
                     .name(map.getName())
-                    .username(map.getUser().getUsername())
+                    .nickname(map.getUser().getNickname())
                     .restaurants(restaurantDtos)
                     .build();
         }).toList();
 
         return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/{id}")
+    @Transactional(readOnly = true)
+    public ResponseEntity<MapCollectionResponse> getMapById(@PathVariable Long id) {
+        return mapCollectionRepository.findById(id)
+                .map(map -> {
+                    List<RestaurantResponse> restaurantDtos = map.getRestaurants().stream().map(r ->
+                            RestaurantResponse.builder()
+                                    .name(r.getName())
+                                    .address(r.getAddress())
+                                    .latitude(r.getLatitude())
+                                    .longitude(r.getLongitude())
+                                    .build()
+                    ).toList();
+
+                    MapCollectionResponse response = MapCollectionResponse.builder()
+                            .id(map.getId())
+                            .name(map.getName())
+                            .nickname(map.getUser().getNickname())
+                            .restaurants(restaurantDtos)
+                            .build();
+
+                    return ResponseEntity.ok(response);
+                })
+                .orElse(ResponseEntity.notFound().build()); // ID에 해당하는 지도가 없으면 404 응답
+    }
+    @PutMapping("/{id}")
+    public ResponseEntity<MapCollection> updateMapName(@PathVariable Long id, @RequestBody MapUpdateRequest request) {
+        MapCollection map = mapCollectionRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Map not found with id: " + id));
+
+        map.setName(request.getName());
+        mapCollectionRepository.save(map);
+
+        return ResponseEntity.ok(map);
     }
 }

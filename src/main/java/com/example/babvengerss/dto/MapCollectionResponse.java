@@ -12,7 +12,7 @@ import java.util.List;
 public class MapCollectionResponse {
     private Long id;
     private String name;
-    private String username;
+    private String nickname;
     private List<RestaurantResponse> restaurants;
 }
 
