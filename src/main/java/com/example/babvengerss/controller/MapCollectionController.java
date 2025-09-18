@@ -1,4 +1,4 @@
-//매칭 시스템 구현
+//나의 지도 구현
 package com.example.babvengerss.controller;
 
 import com.example.babvengerss.domain.MapCollection;
