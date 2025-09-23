@@ -160,6 +160,7 @@ public class MapCollectionController {
                 .name(map.getName())
                 .nickname(map.getUser().getNickname())
                 .restaurants(restaurantDtos)
+                .averageRating(map.getAverageRating())
                 .build();
     }
 

@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.annotations.Formula;
 
 import java.util.List;
 
@@ -33,4 +34,7 @@ public class MapCollection {
             inverseJoinColumns = @JoinColumn(name = "restaurant_id")
     )
     private List<Restaurant> restaurants;
+
+    @Formula("(SELECT AVG(r.rating) FROM review r WHERE r.map_collection_id = id)")
+    private Double averageRating;
 }
