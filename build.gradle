@@ -28,6 +28,7 @@ dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
 	implementation 'org.springframework.boot:spring-boot-starter-web'
 	implementation 'org.springframework.boot:spring-boot-starter-webflux' // ✅ WebClient용
+	implementation 'org.springframework.boot:spring-boot-starter-security'
 
 	// JSON 파싱
 	implementation 'org.json:json:20231013'

@@ -1,4 +1,3 @@
-//검색기능구현
 package com.example.babvengerss.controller;
 
 import com.example.babvengerss.domain.MapCollection;
@@ -64,11 +63,16 @@ public class MapCollectionController {
         return ResponseEntity.ok("맛집 지도 등록 완료!");
     }
 
-    // 키워드로 맛집 지도 검색
+    // 키워드로 맛집 지도 검색 (키워드가 없으면 전체 조회)
     @GetMapping
     @Transactional(readOnly = true)
-    public ResponseEntity<List<MapCollectionResponse>> searchMapsByKeyword(@RequestParam String keyword) {
-        List<MapCollection> results = mapCollectionRepository.findByNameContaining(keyword);
+    public ResponseEntity<List<MapCollectionResponse>> searchMapsByKeyword(@RequestParam(required = false) String keyword) {
+        List<MapCollection> results;
+        if (keyword == null || keyword.isBlank()) {
+            results = mapCollectionRepository.findAll();
+        } else {
+            results = mapCollectionRepository.findByNameOrUserNickname(keyword);
+        }
         List<MapCollectionResponse> response = results.stream().map(this::convertToResponseDto).toList();
         return ResponseEntity.ok(response);
     }
@@ -96,12 +100,12 @@ public class MapCollectionController {
     // ID로 특정 맛집 지도 수정 (이름 변경)
     @PutMapping("/{id}")
     @Transactional
-    public ResponseEntity<MapCollection> updateMapName(@PathVariable Long id, @RequestBody MapUpdateRequest request) {
+    public ResponseEntity<MapCollectionResponse> updateMapName(@PathVariable Long id, @RequestBody MapUpdateRequest request) {
         MapCollection map = mapCollectionRepository.findById(id)
                 .orElseThrow(() -> new NoSuchElementException("Map not found with id: " + id));
         map.setName(request.getName());
         MapCollection savedMap = mapCollectionRepository.save(map);
-        return ResponseEntity.ok(savedMap);
+        return ResponseEntity.ok(convertToResponseDto(savedMap));
     }
 
     // ID로 특정 맛집 지도 삭제
@@ -115,7 +119,7 @@ public class MapCollectionController {
     // 특정 지도에 맛집 추가
     @PostMapping("/{mapId}/restaurants")
     @Transactional
-    public ResponseEntity<Restaurant> addRestaurantToMap(@PathVariable Long mapId, @RequestBody RestaurantInfoRequest request) {
+    public ResponseEntity<RestaurantResponse> addRestaurantToMap(@PathVariable Long mapId, @RequestBody RestaurantInfoRequest request) {
         MapCollection map = mapCollectionRepository.findById(mapId)
                 .orElseThrow(() -> new NoSuchElementException("Map not found with id: " + mapId));
 
@@ -128,8 +132,7 @@ public class MapCollectionController {
             map.getRestaurants().add(restaurant);
             mapCollectionRepository.save(map);
         }
-
-        return ResponseEntity.ok(restaurant);
+        return ResponseEntity.ok(convertToResponseDto(restaurant));
     }
 
     // 특정 지도에서 맛집 삭제
@@ -144,22 +147,13 @@ public class MapCollectionController {
 
         map.getRestaurants().remove(restaurant);
         mapCollectionRepository.save(map);
-
         return ResponseEntity.ok().build();
     }
 
     // ========== Private Helper Methods ==========
 
-    // Restaurant 엔티티를 MapCollectionResponse DTO로 변환
     private MapCollectionResponse convertToResponseDto(MapCollection map) {
-        List<RestaurantResponse> restaurantDtos = map.getRestaurants().stream().map(r ->
-                RestaurantResponse.builder()
-                        .name(r.getName())
-                        .address(r.getAddress())
-                        .latitude(r.getLatitude())
-                        .longitude(r.getLongitude())
-                        .build()
-        ).toList();
+        List<RestaurantResponse> restaurantDtos = map.getRestaurants().stream().map(this::convertToResponseDto).toList();
 
         return MapCollectionResponse.builder()
                 .id(map.getId())
@@ -169,7 +163,16 @@ public class MapCollectionController {
                 .build();
     }
 
-    // 새로운 Restaurant 엔티티 생성 및 저장
+    private RestaurantResponse convertToResponseDto(Restaurant restaurant) {
+        return RestaurantResponse.builder()
+                .id(restaurant.getId())
+                .name(restaurant.getName())
+                .address(restaurant.getAddress())
+                .latitude(restaurant.getLatitude())
+                .longitude(restaurant.getLongitude())
+                .build();
+    }
+
     private Restaurant createNewRestaurant(String name, String address, User user) {
         WebClient client = WebClient.builder()
                 .baseUrl("https://dapi.kakao.com")

@@ -8,6 +8,7 @@ import lombok.Data;
 @Builder
 @AllArgsConstructor
 public class RestaurantResponse {
+    private Long id;
     private String name;
     private String address;
     private double latitude;
