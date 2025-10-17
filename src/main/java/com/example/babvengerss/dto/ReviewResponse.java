@@ -11,4 +11,7 @@ public class ReviewResponse {
     private String nickname;
     private String content;
     private int rating;
+    private Long mapId;
+    private String mapName;
+
 }

@@ -12,6 +12,7 @@ import java.util.List;
 public class MapCollectionResponse {
     private Long id;
     private String name;
+    private Long authorId;
     private String nickname;
     private List<RestaurantResponse> restaurants;
     private Double averageRating;

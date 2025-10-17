@@ -167,6 +167,7 @@ public class MapCollectionController {
         return MapCollectionResponse.builder()
                 .id(map.getId())
                 .name(map.getName())
+                .authorId(map.getUser().getId())
                 .nickname(map.getUser().getNickname())
                 .restaurants(restaurantDtos)
                 .averageRating(map.getAverageRating())
