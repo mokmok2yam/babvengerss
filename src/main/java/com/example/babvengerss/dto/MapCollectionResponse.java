@@ -15,5 +15,6 @@ public class MapCollectionResponse {
     private String nickname;
     private List<RestaurantResponse> restaurants;
     private Double averageRating;
+    private int reviewCount;
 }
 

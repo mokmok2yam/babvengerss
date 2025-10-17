@@ -37,4 +37,6 @@ public class MapCollection {
 
     @Formula("(SELECT AVG(r.rating) FROM review r WHERE r.map_collection_id = id)")
     private Double averageRating;
+    @Formula("(SELECT count(*) FROM review r WHERE r.map_collection_id = id)")
+    private int reviewCount;
 }

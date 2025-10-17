@@ -25,7 +25,7 @@ public class MatchingController {
     private final UserRepository userRepository;
     private final MapCollectionRepository mapCollectionRepository;
 
-    // ✅ 매칭 요청 생성
+    // 매칭 요청 생성
     @PostMapping
     public String requestMatching(@RequestBody MatchingRequest dto) {
         User sender = userRepository.findById(dto.getSenderId()).orElseThrow();
@@ -42,7 +42,7 @@ public class MatchingController {
         return "매칭 요청 완료!";
     }
 
-    // ✅ 받은 매칭 목록 조회 (receiver 기준)
+    // 받은 매칭 목록 조회
     @GetMapping("/received/{userId}")
     public List<MatchingResponse> getReceived(@PathVariable Long userId) {
         User user = userRepository.findById(userId).orElseThrow();
@@ -59,7 +59,7 @@ public class MatchingController {
         }).collect(Collectors.toList());
     }
 
-    // ✅ 보낸 매칭 목록 조회 (sender 기준)
+    // 보낸 매칭 목록 조회 (sender 기준)
     @GetMapping("/sent/{userId}")
     public List<MatchingResponse> getSent(@PathVariable Long userId) {
         User user = userRepository.findById(userId).orElseThrow();

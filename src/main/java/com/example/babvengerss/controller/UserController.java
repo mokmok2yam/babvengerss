@@ -17,11 +17,10 @@ import org.springframework.web.bind.annotation.RestController;
 public class UserController {
 
     private final UserRepository userRepository;
-    private final JwtUtil jwtUtil; // JwtUtil 주입
+    private final JwtUtil jwtUtil;
 
     @PostMapping("/signup")
     public ResponseEntity<String> signup(@RequestBody User user) {
-        // ... 기존 코드와 동일 ...
         if (userRepository.findByUsername(user.getUsername()).isPresent()) {
             return ResponseEntity.badRequest().body("이미 존재하는 사용자입니다.");
         }
@@ -33,9 +32,9 @@ public class UserController {
     public ResponseEntity<?> login(@RequestBody User loginRequest) {
         return userRepository.findByUsername(loginRequest.getUsername())
                 .map(foundUser -> {
-                    // 2. 사용자가 존재하면, 비밀번호가 일치하는지 확인합니다.
+                    // 2. 사용자가 존재하면, 비밀번호가 일치하는지 확인
                     if (foundUser.getPassword().equals(loginRequest.getPassword())) {
-                        // 3. 비밀번호가 일치하면 토큰을 생성하고 LoginResponse를 반환합니다.
+                        // 3. 비밀번호가 일치하면 토큰을 생성
                         final String token = jwtUtil.generateToken(foundUser.getUsername());
                         LoginResponse loginResponse = new LoginResponse(
                                 foundUser.getId(),

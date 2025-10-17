@@ -21,6 +21,6 @@ public class Restaurant {
     private double longitude;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id")  // FK 컬럼 생성
+    @JoinColumn(name = "user_id")
     private User user;
 }

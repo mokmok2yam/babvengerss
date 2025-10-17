@@ -21,5 +21,5 @@ public class Matching {
     @ManyToOne(fetch = FetchType.LAZY)
     private MapCollection mapCollection;
 
-    private String status;  // 요청됨, 수락됨, 거절됨 등
+    private String status;
 }

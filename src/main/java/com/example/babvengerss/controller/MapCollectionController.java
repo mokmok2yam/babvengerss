@@ -1,6 +1,4 @@
-//rating 구현
 package com.example.babvengerss.controller;
-
 
 import com.example.babvengerss.domain.MapCollection;
 import com.example.babvengerss.domain.Restaurant;
@@ -20,6 +18,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.reactive.function.client.WebClient;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.NoSuchElementException;
 
@@ -65,16 +64,26 @@ public class MapCollectionController {
         return ResponseEntity.ok("맛집 지도 등록 완료!");
     }
 
-    // 키워드로 맛집 지도 검색 (키워드가 없으면 전체 조회)
+    // 키워드/정렬 기능이 포함된 맛집 지도 조회
     @GetMapping
     @Transactional(readOnly = true)
-    public ResponseEntity<List<MapCollectionResponse>> searchMapsByKeyword(@RequestParam(required = false) String keyword) {
+    public ResponseEntity<List<MapCollectionResponse>> getMapCollections(
+            @RequestParam(required = false) String keyword,
+            @RequestParam(required = false) String sortBy) {
+
         List<MapCollection> results;
-        if (keyword == null || keyword.isBlank()) {
-            results = mapCollectionRepository.findAll();
-        } else {
+        if (keyword != null && !keyword.isBlank()) {
             results = mapCollectionRepository.findByNameOrUserNickname(keyword);
+        } else {
+            results = mapCollectionRepository.findAll();
         }
+
+        if ("averageRating".equals(sortBy)) {
+            results.sort(Comparator.comparing(m -> m.getAverageRating() != null ? m.getAverageRating() : 0.0, Comparator.reverseOrder()));
+        } else if ("reviewCount".equals(sortBy)) {
+            results.sort(Comparator.comparing(MapCollection::getReviewCount).reversed());
+        }
+
         List<MapCollectionResponse> response = results.stream().map(this::convertToResponseDto).toList();
         return ResponseEntity.ok(response);
     }
@@ -145,14 +154,12 @@ public class MapCollectionController {
                 .orElseThrow(() -> new NoSuchElementException("Map not found with id: " + mapId));
 
         Restaurant restaurant = restaurantRepository.findById(restaurantId)
-                .orElseThrow(() -> new NoSuchElementException("Restaurant not found with id: " + restaurantId));
+                .orElseThrow(() -> new NoSuchElementException("Restaurant not found with id: "+ restaurantId));
 
         map.getRestaurants().remove(restaurant);
         mapCollectionRepository.save(map);
         return ResponseEntity.ok().build();
     }
-
-    // ========== Private Helper Methods ==========
 
     private MapCollectionResponse convertToResponseDto(MapCollection map) {
         List<RestaurantResponse> restaurantDtos = map.getRestaurants().stream().map(this::convertToResponseDto).toList();
@@ -163,6 +170,7 @@ public class MapCollectionController {
                 .nickname(map.getUser().getNickname())
                 .restaurants(restaurantDtos)
                 .averageRating(map.getAverageRating())
+                .reviewCount(map.getReviewCount())
                 .build();
     }
 

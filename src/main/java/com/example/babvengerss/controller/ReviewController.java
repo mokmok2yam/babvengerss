@@ -10,6 +10,7 @@ import com.example.babvengerss.repository.ReviewRepository;
 import com.example.babvengerss.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -23,7 +24,7 @@ public class ReviewController {
     private final MapCollectionRepository mapCollectionRepository;
     private final UserRepository userRepository;
 
-    // ✅ 리뷰 등록
+    // 리뷰 등록
     @PostMapping
     public ResponseEntity<String> createReview(@RequestBody ReviewRequest request) {
         User user = userRepository.findById(request.getUserId()).orElseThrow();
@@ -36,10 +37,10 @@ public class ReviewController {
         review.setRating(request.getRating());
 
         reviewRepository.save(review);
-        return ResponseEntity.ok("✅ 리뷰 등록 완료!");
+        return ResponseEntity.ok("리뷰 등록 완료!");
     }
 
-    // ✅ 리뷰 수정
+    // 리뷰 수정
     @PutMapping("/{reviewId}")
     public ResponseEntity<String> updateReview(@PathVariable Long reviewId,
                                                @RequestBody ReviewRequest request) {
@@ -49,25 +50,28 @@ public class ReviewController {
         review.setRating(request.getRating());
         reviewRepository.save(review);
 
-        return ResponseEntity.ok("✏️ 리뷰 수정 완료!");
+        return ResponseEntity.ok("리뷰 수정 완료!");
     }
 
-    // ✅ 리뷰 삭제
+    // 리뷰 삭제
     @DeleteMapping("/{reviewId}")
     public ResponseEntity<String> deleteReview(@PathVariable Long reviewId) {
         reviewRepository.deleteById(reviewId);
-        return ResponseEntity.ok("🗑️ 리뷰 삭제 완료!");
+        return ResponseEntity.ok("리뷰 삭제 완료!");
     }
 
-    // ✅ 리뷰 조회
+    // 리뷰 조회
     @GetMapping("/map/{mapCollectionId}")
+    @Transactional(readOnly = true) //
     public ResponseEntity<List<ReviewResponse>> getReviews(@PathVariable Long mapCollectionId) {
         MapCollection map = mapCollectionRepository.findById(mapCollectionId).orElseThrow();
         List<Review> reviews = reviewRepository.findByMapCollection(map);
 
         List<ReviewResponse> response = reviews.stream()
                 .map(r -> ReviewResponse.builder()
-                        .username(r.getUser().getUsername())
+                        .reviewId(r.getId())
+                        .authorId(r.getUser().getId())
+                        .nickname(r.getUser().getNickname())
                         .content(r.getContent())
                         .rating(r.getRating())
                         .build())

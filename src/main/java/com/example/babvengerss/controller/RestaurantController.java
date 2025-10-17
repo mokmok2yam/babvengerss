@@ -34,7 +34,7 @@ public class RestaurantController {
 
             // 2. 사용자 기준 중복 맛집 검사
             if (restaurantRepository.existsByUserAndName(user, request.getName())) {
-                return ResponseEntity.status(409).body("⚠️ 이미 등록된 맛집입니다.");
+                return ResponseEntity.status(409).body("이미 등록된 맛집입니다.");
             }
 
             // 3. Kakao 주소 검색 API 호출 (자동 인코딩)
@@ -57,7 +57,7 @@ public class RestaurantController {
             JSONArray documents = json.getJSONArray("documents");
 
             if (documents.isEmpty()) {
-                return ResponseEntity.badRequest().body("📭 주소를 찾을 수 없습니다. 더 정확하게 입력해 주세요!");
+                return ResponseEntity.badRequest().body("주소를 찾을 수 없습니다. 더 정확하게 입력해 주세요!");
             }
 
             JSONObject location = documents.getJSONObject(0);
@@ -75,7 +75,7 @@ public class RestaurantController {
             // 5. 저장
             restaurantRepository.save(restaurant);
 
-            return ResponseEntity.ok("✅ 맛집 등록 성공!");
+            return ResponseEntity.ok("맛집 등록 성공!");
         } catch (Exception e) {
             e.printStackTrace();
             return ResponseEntity.badRequest().body("❌ 등록 실패: " + e.getMessage());
