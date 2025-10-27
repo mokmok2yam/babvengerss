@@ -11,4 +11,5 @@ public interface MatchingRepository extends JpaRepository<Matching, Long> {
     List<Matching> findBySender(User sender);
     List<Matching> findByReceiver(User receiver);
     List<Matching> findByMapCollection(MapCollection mapCollection);
+    List<Matching> findByStatusOrderByIdDesc(String status);
 }

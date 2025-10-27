@@ -9,6 +9,7 @@ import com.example.babvengerss.dto.MatchingStatusUpdateRequest;
 import com.example.babvengerss.repository.MapCollectionRepository;
 import com.example.babvengerss.repository.MatchingRepository;
 import com.example.babvengerss.repository.UserRepository;
+import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -90,5 +91,22 @@ public class MatchingController {
             return ResponseEntity.badRequest().body("상태 업데이트 실패: " + e.getMessage());
         }
     }
+    // ✅ 수락된 최신 매칭 목록 조회
+    @GetMapping("/accepted")
+    @Transactional(readOnly = true)
+    public List<MatchingResponse> getAcceptedMatches() {
+        List<Matching> list = matchingRepository.findByStatusOrderByIdDesc("수락됨");
 
+        return list.stream().map(m -> {
+            MatchingResponse dto = new MatchingResponse();
+            dto.setId(m.getId());
+            dto.setSenderName(m.getSender().getNickname());
+            dto.setReceiverName(m.getReceiver().getNickname());
+            dto.setMapName(m.getMapCollection().getName());
+            dto.setStatus(m.getStatus());
+            return dto;
+        }).collect(Collectors.toList());
+    }
 }
+
+
