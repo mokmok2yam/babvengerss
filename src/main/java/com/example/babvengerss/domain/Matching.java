@@ -1,4 +1,4 @@
-//채팅구현
+//진짜채팅구현 시자
 package com.example.babvengerss.domain;
 import jakarta.persistence.*;
 import lombok.Getter;
