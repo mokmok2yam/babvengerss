@@ -1,5 +1,5 @@
+//채팅구현
 package com.example.babvengerss.domain;
-
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
