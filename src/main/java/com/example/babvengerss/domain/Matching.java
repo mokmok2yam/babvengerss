@@ -19,7 +19,14 @@ public class Matching {
     private User receiver;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    private MapCollection mapCollection;
+    @JoinColumn(name = "restaurant_id") // MapCollection 대신 Restaurant 연결
+    private Restaurant restaurant;
 
     private String status;
+
+    // 추가: Assemble Post 제목
+    private String title;
+
+    // 추가: 모임 시간
+    private String meetingTime;
 }
