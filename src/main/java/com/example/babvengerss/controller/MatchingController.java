@@ -79,15 +79,31 @@ public class MatchingController {
     public ResponseEntity<String> applyToPost(@PathVariable Long postId, @PathVariable Long applicantId) {
         Matching post = matchingRepository.findById(postId).orElseThrow(() -> new NoSuchElementException("Assemble Post not found"));
         User applicant = userRepository.findById(applicantId).orElseThrow(() -> new NoSuchElementException("Applicant not found"));
+        User host = post.getSender(); // 게시글의 작성자가 곧 호스트입니다.
 
-        if (post.getSender().getId().equals(applicantId)) {
+        if (host.getId().equals(applicantId)) {
             return ResponseEntity.badRequest().body("자신이 작성한 게시글에는 신청할 수 없습니다.");
         }
+
+        // 👇👇👇 핵심 수정: 중복 신청 검사 ( .isPresent() 제거 ) 👇👇👇
+        // 1. 이미 '요청됨' 상태의 신청이 있는지 확인
+        boolean alreadyRequested = matchingRepository
+                .existsBySenderAndReceiverAndTitleAndStatus(applicant, host, post.getTitle(), "요청됨"); // .isPresent() 제거
+
+        // 2. 이미 '수락됨' 상태의 신청이 있는지 확인
+        boolean alreadyAccepted = matchingRepository
+                .existsBySenderAndReceiverAndTitleAndStatus(applicant, host, post.getTitle(), "수락됨"); // .isPresent() 제거
+
+        if (alreadyRequested || alreadyAccepted) {
+            return ResponseEntity.status(409).body("이미 신청했거나 수락된 모임입니다.");
+        }
+        // 👆👆👆 핵심 수정 끝 👆👆👆
+
 
         // 신청 정보를 저장할 새로운 Matching 엔티티 생성 (1:1 매칭 요청)
         Matching application = new Matching();
         application.setSender(applicant); // Sender는 신청자
-        application.setReceiver(post.getSender()); // Receiver는 호스트
+        application.setReceiver(host); // Receiver는 호스트
         application.setRestaurant(post.getRestaurant()); // 게시글의 맛집 정보 복사
         application.setTitle(post.getTitle()); // 게시글 제목 복사
         application.setMeetingTime(post.getMeetingTime()); // 모임 시간 복사
@@ -147,6 +163,14 @@ public class MatchingController {
             Matching matching = matchingRepository.findById(request.getMatchingId())
                     .orElseThrow(() -> new RuntimeException("매칭 신청 정보가 없습니다."));
 
+            // 게시글(receiver=null)의 상태를 업데이트하는 경우, 호스트만 가능하도록 추가 검증 (선택적)
+            if (matching.getReceiver() == null) {
+                // User host = userRepository.findById(request.getHostId()).orElseThrow(); // 요청 DTO에 hostId 추가 필요
+                // if (!matching.getSender().getId().equals(host.getId())) {
+                //     return ResponseEntity.status(403).body("게시글 상태 변경 권한이 없습니다.");
+                // }
+            }
+
             matching.setStatus(request.getStatus());
             matchingRepository.save(matching);
 
@@ -167,11 +191,9 @@ public class MatchingController {
         if (post.getRestaurant() != null) {
             dto.setRestaurantName(post.getRestaurant().getName());
             dto.setRestaurantId(post.getRestaurant().getId());
-            // Lat/Lng 추가
             dto.setLatitude(post.getRestaurant().getLatitude());
             dto.setLongitude(post.getRestaurant().getLongitude());
         }
-        // receiverName (신청자)은 게시글이므로 null
         return dto;
     }
 
@@ -187,7 +209,6 @@ public class MatchingController {
         if (request.getRestaurant() != null) {
             dto.setRestaurantName(request.getRestaurant().getName());
             dto.setRestaurantId(request.getRestaurant().getId());
-            // Lat/Lng 추가
             dto.setLatitude(request.getRestaurant().getLatitude());
             dto.setLongitude(request.getRestaurant().getLongitude());
         }
@@ -213,7 +234,6 @@ public class MatchingController {
         JSONArray documents = json.getJSONArray("documents");
 
         if (documents.isEmpty()) {
-            // 주소를 못 찾으면, 그냥 이름/주소만 저장하고 위도/경도는 0으로 설정
             Restaurant fallbackRestaurant = new Restaurant();
             fallbackRestaurant.setName(name);
             fallbackRestaurant.setAddress(address);
@@ -237,3 +257,4 @@ public class MatchingController {
         return restaurantRepository.save(newRestaurant);
     }
 }
+
