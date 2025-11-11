@@ -162,6 +162,20 @@ public class MapCollectionController {
         return ResponseEntity.ok().build();
     }
 
+    // 👇 [추가] 닉네임으로 지도 목록 조회 (밥벤저스 선정 지도용)
+    @GetMapping("/creator-nickname/{nickname}")
+    @Transactional(readOnly = true)
+    public ResponseEntity<List<MapCollectionResponse>> getMapsByCreatorNickname(@PathVariable String nickname) {
+        List<MapCollection> maps = mapCollectionRepository.findByCreatorNickname(nickname);
+
+        // 평점순으로 정렬
+        maps.sort(Comparator.comparing(m -> m.getAverageRating() != null ? m.getAverageRating() : 0.0, Comparator.reverseOrder()));
+
+        List<MapCollectionResponse> response = maps.stream().map(this::convertToResponseDto).toList();
+        return ResponseEntity.ok(response);
+    }
+    // 👆 [추가] 끝
+
     private MapCollectionResponse convertToResponseDto(MapCollection map) {
         List<RestaurantResponse> restaurantDtos = map.getRestaurants().stream().map(this::convertToResponseDto).toList();
 

@@ -16,4 +16,7 @@ public interface MapCollectionRepository extends JpaRepository<MapCollection, Lo
 
     @Query("SELECT m FROM MapCollection m JOIN m.user u WHERE LOWER(m.name) LIKE LOWER(CONCAT('%', :keyword, '%')) OR LOWER(u.nickname) LIKE LOWER(CONCAT('%', :keyword, '%'))")
     List<MapCollection> findByNameOrUserNickname(@Param("keyword") String keyword);
+
+    @Query("SELECT m FROM MapCollection m JOIN FETCH m.user u WHERE u.nickname = :nickname ORDER BY m.id DESC")
+    List<MapCollection> findByCreatorNickname(@Param("nickname") String nickname);
 }
