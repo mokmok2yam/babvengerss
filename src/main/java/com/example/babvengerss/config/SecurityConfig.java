@@ -1,4 +1,4 @@
-// src/main/java/com/example/babvengerss/config/SecurityConfig.java (새 파일)
+//어드민 조회커리 시작
 package com.example.babvengerss.config;
 
 import org.springframework.context.annotation.Bean;
